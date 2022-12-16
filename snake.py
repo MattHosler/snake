@@ -88,10 +88,45 @@ while running:
                 snake_dx = 0
                 snake_dy = SNAKE_SIZE
 
+    #Add the head coordinate to the first index of the body coordinate list
+    #This will essentially move all the snakes body by one position in the list
+    body_coords.insert(0, head_coord)
+    body_coords.pop()
+
+
     #Update the x, y position of the snakes head and make a new coordinate
     head_x += snake_dx
     head_y += snake_dy
     head_coord = (head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
+
+    #Check for game over
+    if head_rect.left < 0 or head_rect.right > WINDOW_WIDTH or head_rect.top < 0 or head_rect.bottom > WINDOW_HEIGHT or head_coord in body_coords:
+        display_surface.blit(game_over_text, game_over_rect)
+        display_surface.blit(continue_text, continue_rect)
+        pygame.display.update()
+
+        #Pause the game until the player presses a key, then resets the game
+        is_pause = True
+        while is_pause:
+            for event in pygame.event.get():
+                #The player wants to play again
+                if event.type == pygame.KEYDOWN:
+                    score = 0
+                    
+                    head_x = WINDOW_WIDTH//2
+                    head_y = WINDOW_HEIGHT//2
+                    head_coord = (head_x, head_y, SNAKE_SIZE, SNAKE_SIZE)
+
+                    body_coords = []
+
+                    snake_dx = 0
+                    snake_dy = 0
+
+                    is_pause = False
+                #The plyer wants to quit
+                if event.type == pygame.QUIT:
+                    is_paused = False
+                    running = False
 
     #Check for collisions
     if head_rect.colliderect(apple_rect):
@@ -101,6 +136,8 @@ while running:
         apple_x = random.randint(0, WINDOW_WIDTH - SNAKE_SIZE)
         apple_y = random.randint(0, WINDOW_HEIGHT - SNAKE_SIZE)
         apple_coord = (apple_x, apple_y, SNAKE_SIZE, SNAKE_SIZE)
+
+        body_coords.append(head_coord)
 
     #Update HUD
     score_text = font.render("Score: " + str(score), True, GREEN, DARKRED)
@@ -112,7 +149,8 @@ while running:
     display_surface.blit(score_text, score_rect)
 
     #Blit assets
-    #Still need to do body 
+    for body in body_coords:
+        pygame.draw.rect(display_surface, DARKGREEN, body)
     head_rect = pygame.draw.rect(display_surface, GREEN, head_coord)
     apple_rect = pygame.draw.rect(display_surface, RED, apple_coord)
 
